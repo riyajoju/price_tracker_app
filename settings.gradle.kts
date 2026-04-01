@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Price Tracker App"
 include(":app")
- 
+include(":network")
+include(":socket")
