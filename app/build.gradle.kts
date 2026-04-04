@@ -46,8 +46,10 @@ android {
 
 dependencies {
     implementation(project(":domain"))
+    implementation(project(":data")) // Added this
     implementation(project(":network"))
     implementation(project(":socket"))
+    implementation(project(":home"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

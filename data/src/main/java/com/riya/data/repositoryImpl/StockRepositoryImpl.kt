@@ -1,4 +1,4 @@
-package com.riyajoju.pricetracker.repositoryImplimport
+package com.riya.data.repositoryImpl
 
 import com.riya.data.mapper.toDomain
 import com.riya.domain.model.Stock

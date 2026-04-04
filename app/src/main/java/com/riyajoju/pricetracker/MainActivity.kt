@@ -24,6 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.riya.home.view.HomeScreen
 import com.riyajoju.pricetracker.ui.theme.PriceTrackerAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
@@ -78,7 +79,7 @@ fun MainScreen() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<HomeRoute> {
-                Text("Explore Screen")
+                HomeScreen()
             }
             composable<WatchlistRoute> {
                 Text("Watchlist Screen")
