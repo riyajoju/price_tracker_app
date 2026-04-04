@@ -1,22 +1,15 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
-    kotlin("plugin.serialization") version "1.9.0"
 }
 
 android {
-    namespace = "com.riyajoju.network"
-    compileSdk {
-        version = release(35)
-    }
+    namespace = "com.riya.home"
+    compileSdk = 35 // Use stable Android 15
 
     defaultConfig {
-        minSdk = 29
-
+        minSdk = 24
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -39,30 +32,17 @@ android {
     }
 }
 
-//kotlin {
-//    jvmToolchain(17)
-//    compilerOptions {
-//        jvmTarget.set(JvmTarget.JVM_17)
-//    }
-//}
-
 dependencies {
-
     implementation(project(":domain"))
+
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.converter.kotlinx.serialization)
-
-    implementation(libs.okhttp)
-    implementation(libs.logging.interceptor)
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
