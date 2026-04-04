@@ -1,6 +1,7 @@
 package com.riya.home.view
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,7 +47,10 @@ import com.riya.home.viewmodel.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel(),
+    onStockClick: (Stock) -> Unit
+) {
 
     val stocks = viewModel.stocks.collectAsLazyPagingItems()
 
@@ -56,7 +60,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
-            StockList(stocks = stocks)
+            StockList(stocks = stocks,onStockClick)
 
             // Show global loading indicator
             if (stocks.loadState.refresh is LoadState.Loading) {
@@ -79,7 +83,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun StockList(stocks: LazyPagingItems<Stock>) {
+fun StockList(stocks: LazyPagingItems<Stock>, onStockClick: (Stock) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -89,7 +93,7 @@ fun StockList(stocks: LazyPagingItems<Stock>) {
             contentType = stocks.itemContentType { "stocks" }
         ) { index ->
             stocks[index]?.let { stock ->
-                StockCard(stock)
+                StockCard(stock, onStockClick)
             }
         }
 
@@ -110,11 +114,12 @@ fun StockList(stocks: LazyPagingItems<Stock>) {
 }
 
 @Composable
-fun StockCard(stock: Stock) {
+fun StockCard(stock: Stock, onStockClick: (Stock) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable { onStockClick(stock) },
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Row(

@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -24,17 +23,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.riya.home.view.HomeScreen
+import androidx.navigation.toRoute
 import com.riyajoju.pricetracker.ui.theme.PriceTrackerAppTheme
+import com.riya.home.view.HomeScreen
+import com.riya.home.view.StockDetailScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
-
-
-data class BottomNavItem<T : Any>(
-    val name: String,
-    val route: T,
-    val icon: ImageVector
-)
 
 @Serializable
 object HomeRoute
@@ -44,6 +38,19 @@ object WatchlistRoute
 
 @Serializable
 object PortfolioRoute
+
+@Serializable
+data class StockDetailRoute(
+    val symbol: String,
+    val name: String,
+    val price: Double
+)
+
+data class BottomNavItem<T : Any>(
+    val name: String,
+    val route: T,
+    val icon: ImageVector
+)
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -79,13 +86,30 @@ fun MainScreen() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<HomeRoute> {
-                HomeScreen()
+                HomeScreen(onStockClick = { stock ->
+                    navController.navigate(
+                        StockDetailRoute(
+                            symbol = stock.symbol,
+                            name = stock.name,
+                            price = stock.price
+                        )
+                    )
+                })
             }
             composable<WatchlistRoute> {
                 Text("Watchlist Screen")
             }
             composable<PortfolioRoute> {
                 Text("Portfolio Screen")
+            }
+            composable<StockDetailRoute> { backStackEntry ->
+                val detailRoute: StockDetailRoute = backStackEntry.toRoute()
+                StockDetailScreen(
+                    name = detailRoute.name,
+                    symbol = detailRoute.symbol,
+                    price = detailRoute.price,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }
@@ -115,12 +139,5 @@ fun AppBottomBar(navController: NavController, items: List<BottomNavItem<out Any
                 }
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PriceTrackerAppTheme {
     }
 }
