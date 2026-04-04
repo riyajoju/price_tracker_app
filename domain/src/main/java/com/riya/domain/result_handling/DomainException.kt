@@ -1,4 +1,4 @@
-package ae.riya.domain.result_handling
+package com.riya.domain.result_handling
 
 sealed class DomainException(message: String? = null, cause: Throwable? = null) :
     Exception(message, cause) {

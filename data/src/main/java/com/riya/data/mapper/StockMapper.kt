@@ -1,4 +1,4 @@
-package com.riyajoju.pricetracker.mapper
+package com.riya.data.mapper
 
 import com.riya.domain.model.Stock
 import com.riyajoju.network.remote.stocks.dto.response.StockDto

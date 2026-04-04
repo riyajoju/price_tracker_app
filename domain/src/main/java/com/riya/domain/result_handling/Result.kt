@@ -1,4 +1,4 @@
-package ae.riya.domain.result_handling
+package com.riya.domain.result_handling
 
 sealed class Result<out T> {
     data class Success<out T>(val data: T) : Result<T>()

@@ -1,12 +1,10 @@
 package com.riyajoju.pricetracker.repositoryImplimport
 
+import com.riya.data.mapper.toDomain
 import com.riya.domain.model.Stock
-
-com.riya.domain.model.Stock
 import com.riya.domain.repository.StocksRepository
 import com.riya.domain.result_handling.Result
 import com.riyajoju.network.remote.stocks.StocksRemoteDataSource
-import com.riyajoju.pricetracker.mapper.toDomain
 import javax.inject.Inject
 
 class StocksRepositoryImpl @Inject constructor(

@@ -23,3 +23,5 @@ rootProject.name = "Price Tracker App"
 include(":app")
 include(":network")
 include(":socket")
+include(":domain")
+include(":data")
