@@ -1,35 +1,30 @@
 package com.riya.data.repositoryImpl
 
-import com.riya.data.mapper.toDomain
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import com.riya.data.paging.StockPagingSource
 import com.riya.domain.model.Stock
 import com.riya.domain.repository.StocksRepository
-import com.riya.domain.result_handling.Result
 import com.riyajoju.network.remote.stocks.StocksRemoteDataSource
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class StocksRepositoryImpl @Inject constructor(
     private val remoteDataSource: StocksRemoteDataSource
 ) : StocksRepository {
 
-    override suspend fun getStocks(
-        page: Int,
-        limit: Int
-    ): Result<List<Stock>> {
-        // Use the remote data source to fetch data
-        val response = remoteDataSource.getStocks(page, limit)
-
-        return when (response) {
-            is Result.Success -> {
-                // Map the Network DTO to the Domain Model
-                Result.Success(
-                    response.data.stocks.map { it.toDomain() }
-                )
+    override fun getStocks(): Flow<PagingData<Stock>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                initialLoadSize = 10,
+                prefetchDistance = 1,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = {
+                StockPagingSource(remoteDataSource)
             }
-
-            is Result.Error -> {
-                // Pass through the exception
-                Result.Error(response.exception)
-            }
-        }
+        ).flow
     }
 }

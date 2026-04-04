@@ -1,8 +1,9 @@
 package com.riya.domain.repository
 
+import androidx.paging.PagingData
 import com.riya.domain.model.Stock
-import com.riya.domain.result_handling.Result
+import kotlinx.coroutines.flow.Flow
 
 interface StocksRepository {
-    suspend fun getStocks(page: Int, limit: Int): Result<List<Stock>>
+    fun getStocks(): Flow<PagingData<Stock>>
 }

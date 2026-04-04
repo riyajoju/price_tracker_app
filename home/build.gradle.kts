@@ -55,7 +55,13 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation(libs.coil.compose) // Added this
+    implementation(libs.androidx.compose.material.icons.extended)
+
+    implementation(libs.coil.compose)
+
+    // Paging
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
