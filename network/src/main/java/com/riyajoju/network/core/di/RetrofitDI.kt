@@ -39,15 +39,19 @@ object RetrofitDI {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): Call.Factory {
-        val connectTimeoutSeconds = 15L
-        val readTimeoutSeconds = 20L
-        val writeTimeoutSeconds = 20L
-        return OkHttpClient.Builder().connectTimeout(connectTimeoutSeconds, TimeUnit.SECONDS)
-            .readTimeout(readTimeoutSeconds, TimeUnit.SECONDS)
-            .writeTimeout(writeTimeoutSeconds, TimeUnit.SECONDS)
-            .addInterceptor(loggingInterceptor).build()
+    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+        val timeoutSeconds = 20L
+        return OkHttpClient.Builder()
+            .connectTimeout(timeoutSeconds, TimeUnit.SECONDS)
+            .readTimeout(timeoutSeconds, TimeUnit.SECONDS)
+            .writeTimeout(timeoutSeconds, TimeUnit.SECONDS)
+            .addInterceptor(loggingInterceptor)
+            .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideCallFactory(client: OkHttpClient): Call.Factory = client
 
     @Provides
     @Singleton
@@ -55,7 +59,6 @@ object RetrofitDI {
     fun baseUrl(): String {
         return "https://db63eda8-a059-4205-a0a3-b81a277abde9.mock.pstmn.io/"
     }
-
 
     @Provides
     @Singleton
@@ -79,4 +82,3 @@ object RetrofitDI {
         return retrofit.create(StocksApiService::class.java)
     }
 }
-

@@ -107,7 +107,6 @@ fun MainScreen() {
                 StockDetailScreen(
                     name = detailRoute.name,
                     symbol = detailRoute.symbol,
-                    price = detailRoute.price,
                     onBackClick = { navController.popBackStack() }
                 )
             }

@@ -1,19 +1,17 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
+    kotlin("plugin.serialization") version libs.versions.kotlin.get()
 }
 
 android {
     namespace = "com.riyajoju.socket"
-    compileSdk {
-        version = release(35)
-    }
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 29
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -36,14 +34,17 @@ android {
     }
 }
 
-//kotlin {
-//    jvmToolchain(17)
-//    compilerOptions {
-//        jvmTarget.set(JvmTarget.JVM_17)
-//    }
-//}
-
 dependencies {
+    implementation(project(":domain"))
+    
+    // Networking
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
