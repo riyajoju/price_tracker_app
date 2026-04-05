@@ -1,6 +1,5 @@
 package com.riyajoju.network.remote.stocks
 
-import com.riya.domain.result_handling.Result
 import com.riyajoju.network.remote.stocks.dto.response.StockResponseDto
 import retrofit2.Response
 import retrofit2.http.GET

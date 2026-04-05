@@ -18,7 +18,7 @@ class StockPagingSource(
             
             when (val result = response) {
                 is Result.Success -> {
-                    val stocks = result.data.stocks.map { it.toDomain() }
+                    val stocks = result.data.stocks.map { it.toDomain() }.sortedByDescending { it.price }
                     LoadResult.Page(
                         data = stocks,
                         prevKey = if (page == 1) null else page - 1,
