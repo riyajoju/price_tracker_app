@@ -14,16 +14,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -44,6 +51,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.riya.domain.model.Stock
 import com.riya.home.viewmodel.HomeViewModel
+import java.util.Locale
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +62,7 @@ fun HomeScreen(
 ) {
 
     val stocks = viewModel.stocks.collectAsLazyPagingItems()
+    val livePrices by viewModel.stockPrices.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -60,7 +70,7 @@ fun HomeScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
-            StockList(stocks = stocks,onStockClick)
+            StockList(stocks = stocks, viewModel, livePrices, onStockClick)
 
             // Show global loading indicator
             if (stocks.loadState.refresh is LoadState.Loading) {
@@ -83,7 +93,12 @@ fun HomeScreen(
 }
 
 @Composable
-fun StockList(stocks: LazyPagingItems<Stock>, onStockClick: (Stock) -> Unit) {
+fun StockList(
+    stocks: LazyPagingItems<Stock>,
+    viewModel: HomeViewModel,
+    livePrices: Map<String, Double>,
+    onStockClick: (Stock) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -93,7 +108,11 @@ fun StockList(stocks: LazyPagingItems<Stock>, onStockClick: (Stock) -> Unit) {
             contentType = stocks.itemContentType { "stocks" }
         ) { index ->
             stocks[index]?.let { stock ->
-                StockCard(stock, onStockClick)
+                LaunchedEffect(stock.symbol) {
+                    viewModel.subscribeToStock(stock.symbol)
+                }
+                val currentPrice = livePrices[stock.symbol] ?: stock.price
+                StockCard(stock, currentPrice, onStockClick)
             }
         }
 
@@ -114,7 +133,19 @@ fun StockList(stocks: LazyPagingItems<Stock>, onStockClick: (Stock) -> Unit) {
 }
 
 @Composable
-fun StockCard(stock: Stock, onStockClick: (Stock) -> Unit) {
+fun StockCard(stock: Stock, currentPrice: Double, onStockClick: (Stock) -> Unit) {
+
+    val isPositive = currentPrice >= stock.price
+    val priceColor = if (isPositive) Color(0xFF4CAF50) else Color(0xFFF44336)
+    val formattedPrice = remember(currentPrice) {
+        String.format("%.2f", currentPrice, Locale.US)
+    }
+
+    val diffPercent = remember(currentPrice, stock.price) {
+        val diff = currentPrice - stock.price
+        (diff / stock.price) * 100
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -152,11 +183,28 @@ fun StockCard(stock: Stock, onStockClick: (Stock) -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "$${stock.price}",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = "$${formattedPrice}",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                    ),
                     fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = priceColor
                 )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (isPositive) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                        contentDescription = null,
+                        tint = priceColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        // Use abs() so we don't show "Down Arrow -1.50%" (Double negatives)
+                        text = String.format(Locale.US, "%.2f%%", abs(diffPercent)),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = priceColor
+                    )
+                }
             }
         }
     }

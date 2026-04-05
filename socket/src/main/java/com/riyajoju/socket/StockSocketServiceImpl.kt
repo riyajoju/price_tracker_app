@@ -16,7 +16,7 @@ import kotlin.random.Random
 @Serializable
 data class SocketUpdateDto(
     val s: String,
-    val p: Double 
+    val p: Double
 )
 
 @Singleton
@@ -28,7 +28,7 @@ class StockSocketServiceImpl @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var webSocket: WebSocket? = null
     private val subscribedSymbols = MutableStateFlow<Set<String>>(emptySet())
-    
+
     private val _updates = MutableSharedFlow<StockPriceUpdate>(extraBufferCapacity = 64)
 
     init {
@@ -59,7 +59,7 @@ class StockSocketServiceImpl @Inject constructor(
                     startConnection()
                 }
             }
-            
+
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                 Log.d("SocketService", "Socket closed: $reason")
             }
@@ -74,7 +74,7 @@ class StockSocketServiceImpl @Inject constructor(
                 delay(2000)
                 val currentSymbols = subscribedSymbols.value
                 val currentSocket = webSocket
-                
+
                 if (currentSocket != null && currentSymbols.isNotEmpty()) {
                     currentSymbols.forEach { symbol ->
                         try {
