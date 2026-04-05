@@ -1,48 +1,68 @@
 package com.riya.home.view
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.riya.home.viewmodel.StockDetailViewModel
+import kotlinx.coroutines.delay
+import java.util.Locale
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StockDetailScreen(
     name: String,
     symbol: String,
+    basePrice: Double,
     viewModel: StockDetailViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
     val livePrice by viewModel.livePrice.collectAsState()
-    
-    // Simple flash effect when price changes
-    var colorTrigger by remember { mutableStateOf(false) }
-    LaunchedEffect(livePrice) {
-        colorTrigger = true
-        kotlinx.coroutines.delay(500)
-        colorTrigger = false
+
+    // 2. Logic for Color and Percentage
+    val isPositive = livePrice >= basePrice
+    val trendColor = if (isPositive) Color(0xFF4CAF50) else Color(0xFFF44336)
+
+    val diffPercent = remember(livePrice, basePrice) {
+        val diff = livePrice - basePrice
+        (diff / basePrice) * 100
     }
-    
-    val animatedColor by animateColorAsState(
-        targetValue = if (colorTrigger) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-        animationSpec = tween(durationMillis = 500)
+
+    // 3. Flash effect logic (Fixed to flash when price actually changes)
+    var isFlashing by remember { mutableStateOf(false) }
+    LaunchedEffect(livePrice) {
+        isFlashing = true
+        delay(300)
+        isFlashing = false
+    }
+
+    // Animate between the trend color (Green/Red) and a lighter version when flashing
+    val animatedPriceColor by animateColorAsState(
+        targetValue = if (isFlashing) trendColor.copy(alpha = 0.5f) else trendColor,
+        animationSpec = tween(durationMillis = 300),
+        label = "PriceFlash"
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = symbol) },
+                title = { Text(text = "$name ($symbol)") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -55,34 +75,66 @@ fun StockDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = name,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Text(
-                text = "$${String.format("%.2f", livePrice)}",
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = animatedColor
+                text = symbol,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.secondary
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
+            // 4. Large Live Price
             Text(
-                text = "Detailed information for $name ($symbol). This price is updating live every 2 seconds via a simulated WebSocket connection to postman-echo.com.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                text = "$${String.format(Locale.US, "%.2f", livePrice)}",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.ExtraBold
+                ),
+                color = animatedPriceColor
             )
+
+            // 5. Percentage Change Row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = if (isPositive) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                    contentDescription = null,
+                    tint = trendColor,
+                    modifier = Modifier.size(32.dp)
+                )
+                Text(
+                    text = String.format(Locale.US, "%.2f%%", abs(diffPercent)),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = trendColor
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Market Status: Live updating every 2s via WebSocket. Initial base price was $${
+                        String.format(
+                            "%.2f",
+                            basePrice
+                        )
+                    }.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
     }
 }

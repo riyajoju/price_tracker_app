@@ -23,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import com.riyajoju.pricetracker.ui.theme.PriceTrackerAppTheme
 import com.riya.home.view.HomeScreen
@@ -102,11 +103,18 @@ fun MainScreen() {
             composable<PortfolioRoute> {
                 Text("Portfolio Screen")
             }
-            composable<StockDetailRoute> { backStackEntry ->
+            composable<StockDetailRoute>(
+                deepLinks = listOf(
+                    navDeepLink<StockDetailRoute>(
+                        basePath = "https://www.pricetracker.com"
+                    )
+                )
+            ) { backStackEntry ->
                 val detailRoute: StockDetailRoute = backStackEntry.toRoute()
                 StockDetailScreen(
                     name = detailRoute.name,
                     symbol = detailRoute.symbol,
+                    basePrice = detailRoute.price,
                     onBackClick = { navController.popBackStack() }
                 )
             }
