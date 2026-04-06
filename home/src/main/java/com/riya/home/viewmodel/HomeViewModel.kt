@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.riya.domain.model.Stock
+import com.riya.domain.repository.ConnectionState
 import com.riya.domain.repository.StockSocketService
 import com.riya.domain.repository.StocksRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: StocksRepository,
-    private val socketService: StockSocketService
+    val socketService: StockSocketService
 ) : ViewModel() {
 
     private val _stockPriceUpdates = MutableStateFlow<Map<String, Double>>(emptyMap())
@@ -43,5 +44,14 @@ class HomeViewModel @Inject constructor(
 
     fun subscribeToStock(symbol: String) {
         socketService.subscribeToStock(symbol)
+    }
+
+    fun togglePriceFeed() {
+        val currentState = socketService.connectionState.value
+        if (currentState is ConnectionState.Connected) {
+            socketService.stopFeed()
+        } else {
+            socketService.startFeed()
+        }
     }
 }

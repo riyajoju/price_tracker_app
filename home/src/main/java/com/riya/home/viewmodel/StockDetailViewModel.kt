@@ -41,11 +41,4 @@ class StockDetailViewModel @Inject constructor(
         // 3. Start simulation for this stock
         socketService.subscribeToStock(symbol)
     }
-
-    override fun onCleared() {
-        super.onCleared()
-        // 4. Stop updates and disconnect when leaving the screen
-        socketService.unsubscribeFromStock(symbol)
-        socketService.disconnect()
-    }
 }

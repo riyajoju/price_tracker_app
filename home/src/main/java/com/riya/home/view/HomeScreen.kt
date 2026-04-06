@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,6 +26,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -49,7 +53,9 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.riya.designsystem.theme.AppColors
 import com.riya.domain.model.Stock
+import com.riya.domain.repository.ConnectionState
 import com.riya.home.viewmodel.HomeViewModel
 import java.util.Locale
 import kotlin.math.abs
@@ -63,23 +69,67 @@ fun HomeScreen(
 
     val stocks = viewModel.stocks.collectAsLazyPagingItems()
     val livePrices by viewModel.stockPrices.collectAsStateWithLifecycle()
+    val connectionState by viewModel.socketService.connectionState.collectAsStateWithLifecycle()
+    val isConnected = connectionState is ConnectionState.Connected
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Stocks") })
+            TopAppBar(title = { }, navigationIcon = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 16.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isConnected) AppColors.SuccessGreen else AppColors.ErrorRed
+                            )
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (isConnected) "Connected" else "Disconnected",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isConnected) AppColors.SuccessGreen else AppColors.ErrorRed
+                    )
+                }
+            }, actions = {
+                Switch(
+                    modifier = Modifier.padding(end = 8.dp),
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = AppColors.SuccessGreen,
+                        checkedBorderColor = AppColors.SuccessGreen,
+
+                        uncheckedThumbColor = Color.White,
+                        uncheckedTrackColor = AppColors.LightGray,
+                        uncheckedBorderColor = Color.Gray
+                    ),
+                    checked = isConnected,
+                    onCheckedChange = {
+                        viewModel.togglePriceFeed()
+                    },
+                    thumbContent = {
+                        Icon(
+                            imageVector = if (isConnected) Icons.Default.Check else Icons.Default.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                )
+            })
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             StockList(stocks = stocks, viewModel, livePrices, onStockClick)
 
-            // Show global loading indicator
             if (stocks.loadState.refresh is LoadState.Loading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
 
-            // Show initial load error
             if (stocks.loadState.refresh is LoadState.Error) {
                 val error = stocks.loadState.refresh as LoadState.Error
                 Text(
@@ -116,7 +166,6 @@ fun StockList(
             }
         }
 
-        // Show loading indicator at the bottom when loading next page
         if (stocks.loadState.append is LoadState.Loading) {
             item {
                 Box(
@@ -136,7 +185,7 @@ fun StockList(
 fun StockCard(stock: Stock, currentPrice: Double, onStockClick: (Stock) -> Unit) {
 
     val isPositive = currentPrice >= stock.price
-    val priceColor = if (isPositive) Color(0xFF4CAF50) else Color(0xFFF44336)
+    val priceColor = if (isPositive) AppColors.SuccessGreen else AppColors.ErrorRed
     val formattedPrice = remember(currentPrice) {
         String.format("%.2f", currentPrice, Locale.US)
     }

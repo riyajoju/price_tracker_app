@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.riya.designsystem.theme.AppColors
 import com.riya.home.viewmodel.StockDetailViewModel
 import kotlinx.coroutines.delay
 import java.util.Locale
@@ -30,14 +31,14 @@ fun StockDetailScreen(
     name: String,
     symbol: String,
     basePrice: Double,
-    viewModel: StockDetailViewModel = hiltViewModel(),
+    viewModel: StockDetailViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(),
     onBackClick: () -> Unit
 ) {
     val livePrice by viewModel.livePrice.collectAsState()
 
     // 2. Logic for Color and Percentage
     val isPositive = livePrice >= basePrice
-    val trendColor = if (isPositive) Color(0xFF4CAF50) else Color(0xFFF44336)
+    val trendColor = if (isPositive) AppColors.SuccessGreen else AppColors.ErrorRed
 
     val diffPercent = remember(livePrice, basePrice) {
         val diff = livePrice - basePrice
@@ -89,9 +90,9 @@ fun StockDetailScreen(
             // 4. Large Live Price
             Text(
                 text = "$${String.format(Locale.US, "%.2f", livePrice)}",
-                style = MaterialTheme.typography.displayLarge.copy(
+                style = MaterialTheme.typography.bodyLarge.copy(
                     fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.ExtraBold
+                    fontWeight = FontWeight.Bold
                 ),
                 color = animatedPriceColor
             )
@@ -109,7 +110,7 @@ fun StockDetailScreen(
                 )
                 Text(
                     text = String.format(Locale.US, "%.2f%%", abs(diffPercent)),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold,
                     color = trendColor
                 )
@@ -117,24 +118,13 @@ fun StockDetailScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Market Status: Live updating every 2s via WebSocket. Initial base price was $${
-                        String.format(
-                            "%.2f",
-                            basePrice
-                        )
-                    }.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
+            Text(
+                text = "${name}. is a leading global technology company headquartered in Cupertino, California. The company designs, manufactures, and markets consumer electronics, software, and online services, including the iPhone, Mac computers, iPad, Apple Watch, and services such as Apple Music, iCloud, and the App Store. With a strong ecosystem and loyal customer base, Apple continues to drive innovation in premium hardware and digital services.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(8.dp)
+            )
+
         }
     }
 }
