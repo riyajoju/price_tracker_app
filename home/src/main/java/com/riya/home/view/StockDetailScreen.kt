@@ -36,7 +36,6 @@ fun StockDetailScreen(
 ) {
     val livePrice by viewModel.livePrice.collectAsState()
 
-    // 2. Logic for Color and Percentage
     val isPositive = livePrice >= basePrice
     val trendColor = if (isPositive) AppColors.SuccessGreen else AppColors.ErrorRed
 
@@ -45,7 +44,6 @@ fun StockDetailScreen(
         (diff / basePrice) * 100
     }
 
-    // 3. Flash effect logic (Fixed to flash when price actually changes)
     var isFlashing by remember { mutableStateOf(false) }
     LaunchedEffect(livePrice) {
         isFlashing = true
@@ -53,7 +51,6 @@ fun StockDetailScreen(
         isFlashing = false
     }
 
-    // Animate between the trend color (Green/Red) and a lighter version when flashing
     val animatedPriceColor by animateColorAsState(
         targetValue = if (isFlashing) trendColor.copy(alpha = 0.5f) else trendColor,
         animationSpec = tween(durationMillis = 300),

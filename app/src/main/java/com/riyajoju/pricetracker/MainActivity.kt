@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -98,10 +99,18 @@ fun MainScreen() {
                 })
             }
             composable<WatchlistRoute> {
-                Text("Watchlist Screen")
+                Text(
+                    "Watchlist Screen",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
             composable<PortfolioRoute> {
-                Text("Portfolio Screen")
+                Text(
+                    "Portfolio Screen",
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
             composable<StockDetailRoute>(
                 deepLinks = listOf(

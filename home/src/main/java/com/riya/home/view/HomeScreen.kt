@@ -248,7 +248,6 @@ fun StockCard(stock: Stock, currentPrice: Double, onStockClick: (Stock) -> Unit)
                         modifier = Modifier.size(20.dp)
                     )
                     Text(
-                        // Use abs() so we don't show "Down Arrow -1.50%" (Double negatives)
                         text = String.format(Locale.US, "%.2f%%", abs(diffPercent)),
                         style = MaterialTheme.typography.labelSmall,
                         color = priceColor
