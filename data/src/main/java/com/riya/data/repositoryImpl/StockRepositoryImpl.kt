@@ -17,8 +17,8 @@ class StocksRepositoryImpl @Inject constructor(
     override fun getStocks(): Flow<PagingData<Stock>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 10,
-                initialLoadSize = 10,
+                pageSize = 15,
+                initialLoadSize = 15,
                 prefetchDistance = 1,
                 enablePlaceholders = false
             ),
