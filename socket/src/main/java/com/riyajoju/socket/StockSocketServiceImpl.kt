@@ -16,8 +16,8 @@ import kotlin.random.Random
 
 @Serializable
 data class SocketUpdateDto(
-    val s: String,
-    val p: Double
+    val stock: String,
+    val price: Double
 )
 @Singleton
 class StockSocketServiceImpl @Inject constructor(
@@ -88,7 +88,7 @@ class StockSocketServiceImpl @Inject constructor(
             override fun onMessage(webSocket: WebSocket, text: String) {
                 try {
                     val dto = json.decodeFromString<SocketUpdateDto>(text)
-                    _updates.tryEmit(StockPriceUpdate(dto.s, dto.p))
+                    _updates.tryEmit(StockPriceUpdate(dto.stock, dto.price))
                 } catch (e: Exception) {}
             }
 
@@ -131,7 +131,7 @@ class StockSocketServiceImpl @Inject constructor(
                 subscribedSymbols.value.forEach { symbol ->
                     try {
                         val randomPrice = Random.nextDouble(100.0, 1000.0)
-                        val update = SocketUpdateDto(s = symbol, p = randomPrice)
+                        val update = SocketUpdateDto(stock = symbol, price = randomPrice)
                         webSocket?.send(json.encodeToString(update))
                     } catch (e: Exception) {
                         Log.e("SocketService", "Simulation send error", e)
