@@ -106,7 +106,7 @@ fun MainScreen() {
             composable<StockDetailRoute>(
                 deepLinks = listOf(
                     navDeepLink<StockDetailRoute>(
-                        basePath = "https://www.pricetracker.com"
+                        basePath = "stocks://symbol"
                     )
                 )
             ) { backStackEntry ->
