@@ -8,7 +8,6 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 object NetworkHandler {
-
     suspend fun <T> safeApiCall(
         apiCall: suspend () -> Response<T>
     ): Result<T> {

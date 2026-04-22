@@ -8,6 +8,8 @@ import com.riya.domain.model.Stock
 import com.riya.domain.repository.ConnectionState
 import com.riya.domain.repository.StockSocketService
 import com.riya.domain.repository.StocksRepository
+import com.riya.domain.usecase.GetStockListUseCase
+import com.riya.domain.usecase.TogglepriceFeedUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,14 +20,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: StocksRepository,
+    private val getStockListUseCase: GetStockListUseCase,
+    private val togglePriceFeedUseCase: TogglepriceFeedUseCase,
     val socketService: StockSocketService
 ) : ViewModel() {
 
     private val _stockPriceUpdates = MutableStateFlow<Map<String, Double>>(emptyMap())
     val stockPrices = _stockPriceUpdates.asStateFlow()
 
-    val stocks: Flow<PagingData<Stock>> = repository.getStocks()
+    val stocks: Flow<PagingData<Stock>> = getStockListUseCase()
         .cachedIn(viewModelScope)
 
     init {
@@ -46,12 +49,11 @@ class HomeViewModel @Inject constructor(
         socketService.subscribeToStock(symbol)
     }
 
+    fun unsubscribeFromStock(symbol: String) {
+        socketService.unsubscribeFromStock(symbol)
+    }
+
     fun togglePriceFeed() {
-        val currentState = socketService.connectionState.value
-        if (currentState is ConnectionState.Connected) {
-            socketService.stopFeed()
-        } else {
-            socketService.startFeed()
-        }
+        togglePriceFeedUseCase()
     }
 }

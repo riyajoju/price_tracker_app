@@ -42,11 +42,16 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            excludes += "/META-INF/gradle/incremental.annotation.processors"
+        }
+    }
 }
 
 dependencies {
     implementation(project(":domain"))
-    implementation(project(":data")) // Added this
+    implementation(project(":data"))
     implementation(project(":network"))
     implementation(project(":socket"))
     implementation(project(":home"))

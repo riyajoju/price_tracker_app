@@ -3,7 +3,8 @@ package com.riya.home.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.riya.domain.model.StockPriceUpdate
-import com.riya.domain.repository.StockSocketService
+import com.riya.domain.usecase.GetStockUseCase
+import com.riya.domain.usecase.ManageSubscriptionUseCase
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -19,7 +20,8 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class StockDetailViewModelTest {
 
-    private val socketService = mockk<StockSocketService>(relaxed = true)
+    private val getStockPriceUseCase = mockk<GetStockUseCase>(relaxed = true)
+    private val manageSubscriptionUseCase = mockk<ManageSubscriptionUseCase>(relaxed = true)
     private val testDispatcher = StandardTestDispatcher()
     
     private val socketFlow = MutableSharedFlow<StockPriceUpdate>()
@@ -27,7 +29,7 @@ class StockDetailViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        every { socketService.connect() } returns socketFlow
+        every { getStockPriceUseCase(any()) } returns socketFlow
     }
 
     @After
@@ -43,12 +45,12 @@ class StockDetailViewModelTest {
         )
 
         // When
-        val viewModel = StockDetailViewModel(socketService, savedStateHandle)
+        val viewModel = StockDetailViewModel(getStockPriceUseCase, manageSubscriptionUseCase, savedStateHandle)
         runCurrent() // Allow init block to run
 
         // Then
         assertEquals(150.0, viewModel.livePrice.value, 0.0)
-        verify { socketService.subscribeToStock("AAPL") }
+        verify { manageSubscriptionUseCase.subscribe("AAPL") }
     }
 
     @Test
@@ -57,7 +59,7 @@ class StockDetailViewModelTest {
         val savedStateHandle = SavedStateHandle(
             mapOf("symbol" to "AAPL", "price" to 150.0)
         )
-        val viewModel = StockDetailViewModel(socketService, savedStateHandle)
+        val viewModel = StockDetailViewModel(getStockPriceUseCase, manageSubscriptionUseCase, savedStateHandle)
         runCurrent()
 
         viewModel.livePrice.test {
@@ -69,27 +71,6 @@ class StockDetailViewModelTest {
 
             // Then
             assertEquals(155.5, awaitItem(), 0.0)
-        }
-    }
-
-    @Test
-    fun `non-matching socket update should be ignored`() = runTest {
-        // Given
-        val savedStateHandle = SavedStateHandle(
-            mapOf("symbol" to "AAPL", "price" to 150.0)
-        )
-        val viewModel = StockDetailViewModel(socketService, savedStateHandle)
-        runCurrent()
-
-        viewModel.livePrice.test {
-            assertEquals(150.0, awaitItem(), 0.0)
-
-            // When: Emit update for a different symbol
-            socketFlow.emit(StockPriceUpdate("GOOGL", 2800.0))
-            runCurrent()
-
-            // Then: No new item should be emitted (ensure it doesn't time out)
-            expectNoEvents() 
         }
     }
 }

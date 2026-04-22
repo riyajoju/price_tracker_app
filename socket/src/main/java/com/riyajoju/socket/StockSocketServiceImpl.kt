@@ -6,6 +6,7 @@ import com.riya.domain.repository.ConnectionState
 import com.riya.domain.repository.StockSocketService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -19,11 +20,14 @@ data class SocketUpdateDto(
     val stock: String,
     val price: Double
 )
+
 @Singleton
 class StockSocketServiceImpl @Inject constructor(
     private val client: OkHttpClient,
     private val json: Json
 ) : StockSocketService {
+
+    private val mutex: Mutex = Mutex()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -78,6 +82,7 @@ class StockSocketServiceImpl @Inject constructor(
             .url("wss://ws.postman-echo.com/raw")
             .build()
 
+
         val listener = object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 this@StockSocketServiceImpl.webSocket = webSocket
@@ -89,7 +94,8 @@ class StockSocketServiceImpl @Inject constructor(
                 try {
                     val dto = json.decodeFromString<SocketUpdateDto>(text)
                     _updates.tryEmit(StockPriceUpdate(dto.stock, dto.price))
-                } catch (e: Exception) {}
+                } catch (e: Exception) {
+                }
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
@@ -130,7 +136,7 @@ class StockSocketServiceImpl @Inject constructor(
 
                 subscribedSymbols.value.forEach { symbol ->
                     try {
-                        val randomPrice = Random.nextDouble(100.0, 1000.0)
+                        val randomPrice = Random.nextDouble(1.0, 100.0)
                         val update = SocketUpdateDto(stock = symbol, price = randomPrice)
                         webSocket?.send(json.encodeToString(update))
                     } catch (e: Exception) {

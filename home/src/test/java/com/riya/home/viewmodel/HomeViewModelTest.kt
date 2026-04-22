@@ -3,7 +3,8 @@ package com.riya.home.viewmodel
 import app.cash.turbine.test
 import com.riya.domain.model.StockPriceUpdate
 import com.riya.domain.repository.StockSocketService
-import com.riya.domain.repository.StocksRepository
+import com.riya.domain.usecase.GetStockListUseCase
+import com.riya.domain.usecase.TogglepriceFeedUseCase
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -19,7 +20,8 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
 
-    private val repository = mockk<StocksRepository>(relaxed = true)
+    private val getStockListUseCase = mockk<GetStockListUseCase>(relaxed = true)
+    private val togglePriceFeedUseCase = mockk<TogglepriceFeedUseCase>(relaxed = true)
     private val socketService = mockk<StockSocketService>(relaxed = true)
     
     private val testDispatcher = StandardTestDispatcher()
@@ -35,12 +37,21 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun `subscribeToStock should call socketService subscribeToStock`() {
-        // Mock socket connection to return an empty flow
-        every { socketService.connect() } returns flowOf()
-        val viewModel = HomeViewModel(repository, socketService)
-
+    fun `togglePriceFeed should call togglePriceFeedUseCase`() {
         // Given
+        val viewModel = HomeViewModel(getStockListUseCase, togglePriceFeedUseCase, socketService)
+
+        // When
+        viewModel.togglePriceFeed()
+
+        // Then
+        verify { togglePriceFeedUseCase() }
+    }
+
+    @Test
+    fun `subscribeToStock should call socketService subscribeToStock`() {
+        // Given
+        val viewModel = HomeViewModel(getStockListUseCase, togglePriceFeedUseCase, socketService)
         val symbol = "TSLA"
 
         // When
@@ -54,13 +65,12 @@ class HomeViewModelTest {
     fun `socket price update should update stockPrices state`() = runTest {
         // Given
         val update = StockPriceUpdate("AAPL", 150.0)
-        // Ensure the flow emits the update
         every { socketService.connect() } returns flowOf(update)
         
         // When: Initialize ViewModel
-        val vm = HomeViewModel(repository, socketService)
+        val vm = HomeViewModel(getStockListUseCase, togglePriceFeedUseCase, socketService)
         
-        // Crucial: Advance the dispatcher so the 'init' block's coroutine can run
+        // Advance dispatcher to let init block run
         advanceUntilIdle() 
         
         // Then: Verify the state

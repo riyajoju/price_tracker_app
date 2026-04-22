@@ -31,7 +31,9 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -68,7 +70,7 @@ fun HomeScreen(
 ) {
 
     val stocks = viewModel.stocks.collectAsLazyPagingItems()
-    val livePrices by viewModel.stockPrices.collectAsStateWithLifecycle()
+    val livePrices = viewModel.stockPrices.collectAsStateWithLifecycle()
     val connectionState by viewModel.socketService.connectionState.collectAsStateWithLifecycle()
     val isConnected = connectionState is ConnectionState.Connected
 
@@ -146,7 +148,7 @@ fun HomeScreen(
 fun StockList(
     stocks: LazyPagingItems<Stock>,
     viewModel: HomeViewModel,
-    livePrices: Map<String, Double>,
+    livePrices: State<Map<String, Double>>,
     onStockClick: (Stock) -> Unit
 ) {
     LazyColumn(
@@ -158,10 +160,15 @@ fun StockList(
             contentType = stocks.itemContentType { "stocks" }
         ) { index ->
             stocks[index]?.let { stock ->
-                LaunchedEffect(stock.symbol) {
+                DisposableEffect(stock.symbol) {
                     viewModel.subscribeToStock(stock.symbol)
+                    onDispose {
+                        viewModel.unsubscribeFromStock(stock.symbol)
+                    }
                 }
-                val currentPrice = livePrices[stock.symbol] ?: stock.price
+                val currentPrice by remember(stock.symbol) {
+                    derivedStateOf { livePrices.value[stock.symbol] ?: stock.price }
+                }
                 StockCard(stock, currentPrice, onStockClick)
             }
         }

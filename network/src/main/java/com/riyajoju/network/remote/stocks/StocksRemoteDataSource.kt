@@ -14,3 +14,13 @@ class StocksRemoteDataSource @Inject constructor(
         }
     }
 }
+
+class AuthRemoteDataSource @Inject constructor(
+    private val apiService: AuthApiService
+) {
+    suspend fun getAuthToken(username: String, password: String): Result<String> {
+        return NetworkHandler.safeApiCall {
+            apiService.getAuthToken(username, password)
+        }
+    }
+}

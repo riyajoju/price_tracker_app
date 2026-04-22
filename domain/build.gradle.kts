@@ -32,6 +32,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.compiler)
     implementation(libs.androidx.paging.runtime)
     
     implementation(libs.androidx.core.ktx)

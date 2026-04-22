@@ -1,10 +1,11 @@
 package com.riyajoju.network.remote.stocks.dto.response
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class StockResponseDto(
-    val page: Int,
+    @SerialName("page") val page: Int,
     val limit: Int,
     val total: Int,
     val hasNext: Boolean,

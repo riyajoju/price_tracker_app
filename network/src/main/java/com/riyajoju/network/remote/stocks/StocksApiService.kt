@@ -12,3 +12,11 @@ interface StocksApiService {
         @Query("limit") limit: Int
     ): Response<StockResponseDto>
 }
+
+interface AuthApiService {
+    @GET("test")
+    suspend fun getAuthToken(
+        @Query("username") username: String,
+        @Query("password") password: String
+    ): Response<String>
+}
